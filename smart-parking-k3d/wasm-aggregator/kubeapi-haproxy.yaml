@@ -1,0 +1,69 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kubeapi-haproxy-cm
+  namespace: smart-parking
+data:
+  haproxy.cfg: |
+    global
+      log stdout format raw local0
+
+    defaults
+      mode http
+      timeout connect 5s
+      timeout client  60s
+      timeout server  60s
+      option  httplog
+
+    frontend fe_api
+      bind 0.0.0.0:8000
+      default_backend be_kubeapi
+
+    backend be_kubeapi
+      server apiserver kubernetes.default.svc:443 ssl verify none
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kubeapi-haproxy
+  namespace: smart-parking
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kubeapi-haproxy
+  template:
+    metadata:
+      labels:
+        app: kubeapi-haproxy
+    spec:
+      serviceAccountName: spinkube-aggregator
+      containers:
+        - name: haproxy
+          image: haproxy:2.8
+          args: ["-f", "/usr/local/etc/haproxy/haproxy.cfg"]
+          ports:
+            - containerPort: 8000
+          volumeMounts:
+            - name: cfg
+              mountPath: /usr/local/etc/haproxy
+      volumes:
+        - name: cfg
+          configMap:
+            name: kubeapi-haproxy-cm
+            items:
+              - key: haproxy.cfg
+                path: haproxy.cfg
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kubeapi-proxy
+  namespace: smart-parking
+spec:
+  selector:
+    app: kubeapi-haproxy
+  ports:
+    - name: http
+      port: 8000
+      targetPort: 8000

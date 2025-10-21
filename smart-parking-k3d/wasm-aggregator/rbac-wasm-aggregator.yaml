@@ -1,0 +1,40 @@
+# RBAC per WASM aggregator su SpinKube
+# Permette la gestione delle CRD ParkingLot/ParkingSpace e la creazione di Event
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  # ServiceAccount usato dal pod WASM aggregator
+  name: spinkube-aggregator
+  namespace: smart-parking
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  # Ruolo con permessi di scrittura sulle CRD e Event
+  name: smart-parking-crd-writer
+  namespace: smart-parking
+rules:
+  - apiGroups: ["parking.smart"]
+    resources: ["parkinglots", "parkingspaces"]
+    verbs: ["get", "list", "watch", "create", "update", "patch"] # Permessi CRUD sulle CRD
+  - apiGroups: ["parking.smart"]
+    resources: ["parkinglots/status", "parkingspaces/status"]
+    verbs: ["get", "update", "patch"] # Permessi di aggiornamento status
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["create", "patch"]  # Permessi per creare Event (opzionale)
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  # Collega il ServiceAccount al ruolo
+  name: spinkube-aggregator-rb
+  namespace: smart-parking
+subjects:
+  - kind: ServiceAccount
+    name: spinkube-aggregator
+    namespace: smart-parking
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: smart-parking-crd-writer

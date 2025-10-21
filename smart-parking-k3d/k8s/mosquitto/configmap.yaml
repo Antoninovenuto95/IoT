@@ -1,0 +1,34 @@
+# ConfigMap per Mosquitto
+# Contiene la configurazione del broker MQTT usato nel cluster smart-parking
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  # Nome della ConfigMap
+  name: mosquitto-config
+data:
+  # File di configurazione principale di Mosquitto
+  mosquitto.conf: |
+    # Listener TLS su porta 8883 (per produzione e aggregator Python)
+    listener 8883
+    # Disabilita accesso anonimo: solo client autenticati (mTLS)
+    allow_anonymous false
+    # Abilita la persistenza dei messaggi (salvataggio su disco)
+    persistence true
+    # Directory dove Mosquitto salva i dati persistenti
+    persistence_location /mosquitto/data/
+    # Salva lo stato ogni 10 secondi
+    autosave_interval 10
+    # Percorsi dei certificati TLS (montati come secret)
+    cafile /etc/mosquitto/certs/ca.crt
+    certfile /etc/mosquitto/certs/server.crt
+    keyfile /etc/mosquitto/certs/server.key
+    # Richiede certificato client (mTLS)
+    require_certificate true
+    # Usa il CN del certificato come username MQTT
+    use_identity_as_username true
+
+    # Listener non-TLS su porta 1883 (solo per sviluppo e aggregator WASM)
+    # Permette connessioni anonime
+    listener 1883
+    allow_anonymous true
+    # Nota: entrambi i listener condividono la stessa persistenza

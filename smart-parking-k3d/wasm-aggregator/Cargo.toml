@@ -1,0 +1,18 @@
+# Cargo.toml per il WASM aggregator Smart Parking
+# Definisce le dipendenze e la configurazione del pacchetto Rust
+[package]
+name = "smart_parking_aggregator"   # Nome del pacchetto
+version = "0.1.1"                   # Versione
+edition = "2021"                    # Edizione Rust
+
+[lib]
+crate-type = ["cdylib"]              # Tipo di libreria (WASM compatibile)
+
+[dependencies]
+anyhow = "1"                         # Gestione errori
+serde = { version = "1", features = ["derive"] } # Serializzazione/deserializzazione
+serde_json = "1"                     # Supporto JSON
+time = { version = "0.3", features = ["formatting"] } # Gestione date/ora
+spin-sdk = "5"                       # SDK Spin per WASM
+# plugin MQTT per Spin (macro #[mqtt_component])
+spin-mqtt-sdk = { git = "https://github.com/spinframework/spin-trigger-mqtt", package = "spin-mqtt-sdk", tag = "v0.5.1" } # SDK MQTT per Spin

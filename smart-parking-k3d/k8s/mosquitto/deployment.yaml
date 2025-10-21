@@ -1,0 +1,46 @@
+# Deployment di Mosquitto (broker MQTT)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  # Nome della risorsa Deployment
+  name: mosquitto
+spec:
+  # Numero di repliche (broker singolo per demo)
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mosquitto
+  template:
+    metadata:
+      labels:
+        app: mosquitto
+    spec:
+      containers:
+      - name: mosquitto
+        # Immagine ufficiale Mosquitto
+        image: eclipse-mosquitto:2
+        ports:
+        - containerPort: 8883  # Porta MQTT con TLS/mTLS
+          name: mqtts
+        - containerPort: 1883  # Porta MQTT senza TLS (sviluppo)
+          name: mqtt
+        volumeMounts:
+        - name: mosquitto-config
+          mountPath: /mosquitto/config  # Configurazione Mosquitto
+        - name: mosquitto-data
+          mountPath: /mosquitto/data    # Dati persistenti (messaggi, stato)
+        - name: mosquitto-tls
+          mountPath: /etc/mosquitto/certs  # Certificati TLS/mTLS
+          readOnly: true
+      volumes:
+      - name: mosquitto-config
+        configMap:
+          name: mosquitto-config
+          items:
+          - key: mosquitto.conf
+            path: mosquitto.conf
+      - name: mosquitto-data
+        emptyDir: {}  # Volume effimero per dati Mosquitto
+      - name: mosquitto-tls
+        secret:
+          secretName: mosquitto-tls  # Secret con certificati TLS/mTLS

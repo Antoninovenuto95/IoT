@@ -1,0 +1,47 @@
+# Manifest Kubernetes per la segnaletica (UI) Smart Parking
+# Definisce Deployment e Service per il pod signage
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  # Nome del Deployment
+  name: signage
+spec:
+  replicas: 1 # Un solo pod per demo
+  selector:
+    matchLabels:
+      app: signage
+  template:
+    metadata:
+      labels:
+        app: signage
+    spec:
+      serviceAccountName: signage # ServiceAccount per permessi di lettura CRD
+      containers:
+      - name: signage
+        image: smart-parking/signage:latest # Immagine Docker UI
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 443 # Porta HTTPS
+          name: https
+        volumeMounts:
+        - name: https
+          mountPath: /etc/tls   # Monta i certificati TLS
+          readOnly: true
+      volumes:
+      - name: https
+        secret:
+          secretName: https-signage # Secret con certificati TLS
+---
+apiVersion: v1
+kind: Service
+metadata:
+  # Service per esporre la UI
+  name: signage
+spec:
+  selector:
+    app: signage
+  ports:
+  - name: https
+    port: 443        # Porta esterna HTTPS
+    targetPort: 443  # Porta del container
+    protocol: TCP

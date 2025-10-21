@@ -1,0 +1,47 @@
+# Manifest Kubernetes per le API mobile Smart Parking
+# Definisce Deployment e Service per il pod mobile-api
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  # Nome del Deployment
+  name: mobile-api
+spec:
+  replicas: 1 # Un solo pod per demo
+  selector:
+    matchLabels:
+      app: mobile-api
+  template:
+    metadata:
+      labels:
+        app: mobile-api
+    spec:
+      serviceAccountName: mobile-api # ServiceAccount per permessi di lettura CRD
+      containers:
+      - name: mobile-api
+        image: smart-parking/mobile-api:latest # Immagine Docker API mobile
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 443 # Porta HTTPS
+          name: https
+        volumeMounts:
+        - name: https
+          mountPath: /etc/tls   # Monta i certificati TLS
+          readOnly: true
+      volumes:
+      - name: https
+        secret:
+          secretName: https-mobile-api # Secret con certificati TLS
+---
+apiVersion: v1
+kind: Service
+metadata:
+  # Service per esporre le API mobile
+  name: mobile-api
+spec:
+  selector:
+    app: mobile-api
+  ports:
+  - name: https
+    port: 443        # Porta esterna HTTPS
+    targetPort: 443  # Porta del container
+    protocol: TCP

@@ -1,0 +1,19 @@
+# Service Kubernetes per Mosquitto (broker MQTT)
+# Espone le porte MQTT (TLS e non TLS) all'interno del cluster
+apiVersion: v1
+kind: Service
+metadata:
+  # Nome del Service
+  name: mosquitto
+spec:
+  selector:
+    app: mosquitto # Seleziona i pod con label app=mosquitto
+  ports:
+  - name: mqtts
+    port: 8883        # Porta MQTT con TLS/mTLS
+    targetPort: 8883  # Porta del container
+    protocol: TCP
+  - name: mqtt
+    port: 1883        # Porta MQTT senza TLS (sviluppo)
+    targetPort: 1883  # Porta del container
+    protocol: TCP

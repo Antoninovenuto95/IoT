@@ -1,0 +1,86 @@
+spin_manifest_version = 2
+
+[application]
+name = "smart-parking-aggregator"
+version = "0.1.1"
+description = "MQTT -> CRD aggregator (Spin Wasm)"
+authors = ["You"]
+
+[variables]
+broker_addr = { default = "mqtt://mosquitto.smart-parking.svc.cluster.local:1883" }
+broker_user = { default = "" }
+broker_pass = { default = "" }
+topic       = { default = "parking/+/+/status" }
+
+namespace  = { default = "smart-parking" }
+group      = { default = "parking.smart" }
+version    = { default = "v1alpha1" }
+k8s_scheme = { default = "http" }
+# CRITICAL: Usa FQDN completo per DNS resolution
+k8s_host   = { default = "kubeapi-proxy.smart-parking.svc.cluster.local" }
+k8s_port   = { default = "8000" }
+k8s_token  = { default = "" }
+
+[application.trigger.mqtt]
+address = "{{ broker_addr }}"
+username = "{{ broker_user }}"
+password = "{{ broker_pass }}"
+keep_alive_interval = "30"
+
+[[trigger.mqtt]]
+component = "aggregator"
+topic = "{{ topic }}"
+qos = "1"
+
+[component.aggregator]
+source = "target/wasm32-wasip1/release/smart_parking_aggregator.wasm"
+
+# CRITICAL: Lista completa di allowed outbound hosts
+# WASM richiede esplicitamente ogni possibile variante
+allowed_outbound_hosts = [
+  # MQTT - tutte le varianti DNS
+  "mqtt://mosquitto.smart-parking.svc.cluster.local:1883",
+  "mqtt://mosquitto.smart-parking.svc:1883",
+  "mqtt://mosquitto.smart-parking:1883",
+  "mqtt://mosquitto:1883",
+  
+  # HAProxy - TUTTE le varianti possibili (CRITICAL!)
+  "http://kubeapi-proxy.smart-parking.svc.cluster.local:8000",
+  "http://kubeapi-proxy.smart-parking.svc:8000",
+  "http://kubeapi-proxy.smart-parking:8000",
+  "http://kubeapi-proxy:8000",
+  "http://10.43.185.12:8000",  # IP del ClusterIP service
+  
+  # Wildcard per tutto il cluster (se permesso)
+  "http://*.smart-parking.svc.cluster.local:8000",
+  "http://*.smart-parking.svc:8000",
+  
+  # Kubernetes API diretta (fallback)
+  "https://kubernetes.default.svc.cluster.local:443",
+  "https://kubernetes.default.svc:443",
+  "https://kubernetes.default:443",
+  "https://kubernetes:443"
+]
+
+[component.aggregator.variables]
+broker_addr = "{{ broker_addr }}"
+topic       = "{{ topic }}"
+namespace   = "{{ namespace }}"
+group       = "{{ group }}"
+version     = "{{ version }}"
+k8s_scheme  = "{{ k8s_scheme }}"
+k8s_host    = "{{ k8s_host }}"
+k8s_port    = "{{ k8s_port }}"
+k8s_token   = "{{ k8s_token }}"
+
+[component.aggregator.environment]
+NAMESPACE   = "{{ namespace }}"
+GROUP       = "{{ group }}"
+VERSION     = "{{ version }}"
+K8S_SCHEME  = "{{ k8s_scheme }}"
+K8S_HOST    = "{{ k8s_host }}"
+K8S_PORT    = "{{ k8s_port }}"
+SPIN_VARIABLE_NAMESPACE = "smart-parking"
+
+[component.aggregator.build]
+command = "cargo build --target wasm32-wasip1 --release"

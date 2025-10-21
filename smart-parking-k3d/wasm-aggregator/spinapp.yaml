@@ -1,0 +1,33 @@
+apiVersion: core.spinkube.dev/v1alpha1
+kind: SpinApp
+metadata:
+  name: smart-parking-aggregator
+  namespace: smart-parking
+spec:
+  image: ghcr.io/paxias/smart-parking-aggregator:0.1.1
+  executor: containerd-shim-spin
+  replicas: 1
+  serviceAccountName: spinkube-aggregator
+  variables:
+    - name: broker_addr
+      value: "mqtt://mosquitto.smart-parking.svc.cluster.local:1883"
+    - name: topic
+      value: "parking/+/+/status"
+    - name: namespace
+      value: "smart-parking"
+    - name: group
+      value: "parking.smart"
+    - name: version
+      value: "v1alpha1"
+    - name: k8s_scheme
+      value: "http"
+    - name: k8s_host
+      value: "kubeapi-proxy.smart-parking.svc"
+    - name: k8s_port
+      value: "8000"
+    - name: k8s_token
+      valueFrom:
+        secretKeyRef:
+          name: k8s-token-secret
+          key: k8s_token
+          optional: false
