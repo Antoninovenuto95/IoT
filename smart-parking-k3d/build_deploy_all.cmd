@@ -3,7 +3,7 @@ setlocal EnableExtensions EnableDelayedExpansion
 
 REM ============================================================
 REM  Smart Parking - Setup Unificato (TLS + SpinKube opzionale)
-REM  Requisiti: Docker Desktop, kubectl, k3d, helm
+REM  Requisiti: Docker Desktop, kubectl, k3d, helm, spin, cargo, wasmtime, rustup
 REM ============================================================
 
 REM ===== Settings =====

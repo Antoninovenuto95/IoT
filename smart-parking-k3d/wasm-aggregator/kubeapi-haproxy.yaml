@@ -1,69 +1,91 @@
+# ------------------------------------------------------
+# HAProxy come proxy HTTP verso il kube-apiserver
+# ------------------------------------------------------
+# Questo componente espone un endpoint HTTP (porta 8000)
+# che inoltra le richieste al kube-apiserver (porta 443, HTTPS),
+# permettendo al WASM Aggregator di interagire con le CRD
+# senza dover gestire certificati o connessioni HTTPS dirette.
+# ------------------------------------------------------
+
+# ------------------------------------------------------
+# ConfigMap contenente la configurazione di HAProxy
+# ------------------------------------------------------
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: kubeapi-haproxy-cm
-  namespace: smart-parking
+  name: kubeapi-haproxy-cm                  # Nome della ConfigMap
+  namespace: smart-parking                  # Namespace del progetto
 data:
-  haproxy.cfg: |
+  haproxy.cfg: |                            # File di configurazione HAProxy
     global
-      log stdout format raw local0
+      log stdout format raw local0          # Log su stdout per debug
 
     defaults
-      mode http
-      timeout connect 5s
-      timeout client  60s
-      timeout server  60s
-      option  httplog
+      mode http                             # Modalità HTTP
+      timeout connect 5s                    # Timeout di connessione
+      timeout client  60s                   # Timeout lato client
+      timeout server  60s                   # Timeout lato server
+      option  httplog                       # Abilita log HTTP standard
 
+    # Frontend: espone la porta 8000 per ricevere richieste
     frontend fe_api
-      bind 0.0.0.0:8000
-      default_backend be_kubeapi
+      bind 0.0.0.0:8000                     # Porta di ascolto
+      default_backend be_kubeapi            # Inoltra tutto al backend
 
+    # Backend: inoltra al kube-apiserver interno del cluster
     backend be_kubeapi
       server apiserver kubernetes.default.svc:443 ssl verify none
+      # - "ssl verify none" disabilita la verifica del certificato
+      #   poiché il traffico è interno al cluster
 ---
+# ------------------------------------------------------
+# Deployment del proxy HAProxy
+# ------------------------------------------------------
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: kubeapi-haproxy
+  name: kubeapi-haproxy                     # Nome del Deployment
   namespace: smart-parking
 spec:
-  replicas: 1
+  replicas: 1                               # Una replica è sufficiente (proxy locale)
   selector:
     matchLabels:
-      app: kubeapi-haproxy
+      app: kubeapi-haproxy                  # Label per il selector
   template:
     metadata:
       labels:
-        app: kubeapi-haproxy
+        app: kubeapi-haproxy                # Label applicata al Pod
     spec:
-      serviceAccountName: spinkube-aggregator
+      serviceAccountName: spinkube-aggregator   # Usa il ServiceAccount con permessi sulle CRD
       containers:
-        - name: haproxy
-          image: haproxy:2.8
-          args: ["-f", "/usr/local/etc/haproxy/haproxy.cfg"]
+        - name: haproxy                     # Contenitore principale
+          image: haproxy:2.8                # Immagine ufficiale HAProxy
+          args: ["-f", "/usr/local/etc/haproxy/haproxy.cfg"]  # Percorso al file di configurazione
           ports:
-            - containerPort: 8000
+            - containerPort: 8000           # Porta esposta dal container
           volumeMounts:
-            - name: cfg
+            - name: cfg                     # Monta la ConfigMap
               mountPath: /usr/local/etc/haproxy
       volumes:
-        - name: cfg
+        - name: cfg                         # Volume per la configurazione HAProxy
           configMap:
-            name: kubeapi-haproxy-cm
+            name: kubeapi-haproxy-cm        # Nome della ConfigMap
             items:
-              - key: haproxy.cfg
+              - key: haproxy.cfg            # File da montare
                 path: haproxy.cfg
 ---
+# ------------------------------------------------------
+# Service per esporre HAProxy all’interno del namespace
+# ------------------------------------------------------
 apiVersion: v1
 kind: Service
 metadata:
-  name: kubeapi-proxy
+  name: kubeapi-proxy                       # Nome del Service usato dal WASM Aggregator
   namespace: smart-parking
 spec:
   selector:
-    app: kubeapi-haproxy
+    app: kubeapi-haproxy                    # Seleziona i pod con label "app: kubeapi-haproxy"
   ports:
     - name: http
-      port: 8000
-      targetPort: 8000
+      port: 8000                            # Porta esposta all’interno del cluster
+      targetPort: 8000                      # Porta del container HAProxy

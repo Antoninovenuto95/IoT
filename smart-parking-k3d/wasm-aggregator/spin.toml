@@ -1,66 +1,112 @@
+# -----------------------------------------------------
+# Aggregatore MQTT -> CRD in ambiente Kubernetes (Spin + Wasm)
+# -----------------------------------------------------
+
 spin_manifest_version = 2
 
 [application]
+# Nome dell’applicazione Spin
 name = "smart-parking-aggregator"
+# Versione applicazione
 version = "0.1.1"
+# Breve descrizione
 description = "MQTT -> CRD aggregator (Spin Wasm)"
+# Autori o maintainer
 authors = ["You"]
 
+# ------------------------------------------------------
+# Variabili di configurazione
+# Queste possono essere sovrascritte tramite ambiente o CLI
+# ------------------------------------------------------
+
 [variables]
+# Indirizzo del broker MQTT (usato come trigger principale)
 broker_addr = { default = "mqtt://mosquitto.smart-parking.svc.cluster.local:1883" }
+
+# Credenziali MQTT (vuote di default, da gestire via Secret)
 broker_user = { default = "" }
 broker_pass = { default = "" }
+
+# Topic MQTT da sottoscrivere (usa wildcard per tutti i parcheggi)
 topic       = { default = "parking/+/+/status" }
 
+# Informazioni CRD Kubernetes (namespace, gruppo, versione)
 namespace  = { default = "smart-parking" }
 group      = { default = "parking.smart" }
 version    = { default = "v1alpha1" }
+
+# Configurazione API Kubernetes (via proxy interno)
 k8s_scheme = { default = "http" }
-# CRITICAL: Usa FQDN completo per DNS resolution
+
+# Usare sempre il FQDN completo per la risoluzione DNS nel cluster
 k8s_host   = { default = "kubeapi-proxy.smart-parking.svc.cluster.local" }
 k8s_port   = { default = "8000" }
+
+# Token di autenticazione per l’API (vuoto di default, da Secret)
 k8s_token  = { default = "" }
 
+# ------------------------------------------------------
+# Trigger MQTT
+# Spin attiva il componente “aggregator” alla ricezione di un messaggio
+# ------------------------------------------------------
+
 [application.trigger.mqtt]
+# Connessione al broker MQTT
 address = "{{ broker_addr }}"
 username = "{{ broker_user }}"
 password = "{{ broker_pass }}"
+# Tempo massimo di keep-alive (in secondi)
 keep_alive_interval = "30"
 
+# Definizione del singolo trigger MQTT
 [[trigger.mqtt]]
+# Componente target da eseguire
 component = "aggregator"
+# Topic di sottoscrizione
 topic = "{{ topic }}"
+# QoS per il messaggio MQTT
 qos = "1"
 
+# ------------------------------------------------------
+# Componente principale: Aggregator
+# Si occupa di convertire messaggi MQTT in CRD Kubernetes
+# ------------------------------------------------------
+
 [component.aggregator]
+# Percorso al file WebAssembly compilato
 source = "target/wasm32-wasip1/release/smart_parking_aggregator.wasm"
 
-# CRITICAL: Lista completa di allowed outbound hosts
-# WASM richiede esplicitamente ogni possibile variante
+# Lista completa degli host verso cui il Wasm può fare richieste
+# Spin WASM richiede l’esplicitazione di TUTTI i possibili host di destinazione
 allowed_outbound_hosts = [
-  # MQTT - tutte le varianti DNS
+  # --- MQTT broker: tutte le varianti DNS ---
   "mqtt://mosquitto.smart-parking.svc.cluster.local:1883",
   "mqtt://mosquitto.smart-parking.svc:1883",
   "mqtt://mosquitto.smart-parking:1883",
   "mqtt://mosquitto:1883",
   
-  # HAProxy - TUTTE le varianti possibili (CRITICAL!)
+  # --- HAProxy / kubeapi-proxy: tutte le varianti (CRITICAL!) ---
   "http://kubeapi-proxy.smart-parking.svc.cluster.local:8000",
   "http://kubeapi-proxy.smart-parking.svc:8000",
   "http://kubeapi-proxy.smart-parking:8000",
   "http://kubeapi-proxy:8000",
-  "http://10.43.185.12:8000",  # IP del ClusterIP service
+  # Indirizzo IP diretto del servizio (fallback)
+  "http://10.43.185.12:8000",
   
-  # Wildcard per tutto il cluster (se permesso)
+  # --- Wildcard per tutto il cluster (solo se consentito) ---
   "http://*.smart-parking.svc.cluster.local:8000",
   "http://*.smart-parking.svc:8000",
   
-  # Kubernetes API diretta (fallback)
+  # --- Accesso diretto all’API Kubernetes (fallback d’emergenza) ---
   "https://kubernetes.default.svc.cluster.local:443",
   "https://kubernetes.default.svc:443",
   "https://kubernetes.default:443",
   "https://kubernetes:443"
 ]
+
+# ------------------------------------------------------
+# Variabili passate al componente Wasm
+# ------------------------------------------------------
 
 [component.aggregator.variables]
 broker_addr = "{{ broker_addr }}"
@@ -73,6 +119,11 @@ k8s_host    = "{{ k8s_host }}"
 k8s_port    = "{{ k8s_port }}"
 k8s_token   = "{{ k8s_token }}"
 
+# ------------------------------------------------------
+# Variabili d’ambiente per il runtime
+# (accessibili tramite std::env nel codice Rust)
+# ------------------------------------------------------
+
 [component.aggregator.environment]
 NAMESPACE   = "{{ namespace }}"
 GROUP       = "{{ group }}"
@@ -80,7 +131,14 @@ VERSION     = "{{ version }}"
 K8S_SCHEME  = "{{ k8s_scheme }}"
 K8S_HOST    = "{{ k8s_host }}"
 K8S_PORT    = "{{ k8s_port }}"
+
+# Spin namespace per le variabili d’ambiente
 SPIN_VARIABLE_NAMESPACE = "smart-parking"
+
+# ------------------------------------------------------
+# Configurazione di build
+# Comando per compilare il componente in formato Wasm
+# ------------------------------------------------------
 
 [component.aggregator.build]
 command = "cargo build --target wasm32-wasip1 --release"
