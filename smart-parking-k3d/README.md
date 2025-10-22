@@ -3,7 +3,7 @@
 Questo repository contiene un ambiente dimostrativo di *Smart Parking* basato su **MQTT** e **Custom Resource Definitions (CRD)** in Kubernetes. Include:
 - Quattro servizi principali (simulatore sensori, aggregatore, segnaletica web, API mobile)
 - Un broker **Eclipse Mosquitto** configurato per **TLS/mTLS**
-- Manifest Kubernetes (CRD, RBAC, Deployment/Service, NetworkPolicy)
+- Manifest Kubernetes (CRD, RBAC, Deployment/Service)
 - Un componente **WASM Aggregator** (SpinKube) per aggregazione MQTT → CRD via WebAssembly
 
 > **TL;DR**
@@ -27,8 +27,6 @@ smart-parking-k3d/
 │   # Documentazione principale del progetto
 ├── build_deploy_all.cmd
 │   # Script batch Windows: build, segreti, deploy, port-forward (tutto in uno)
-├── executor-smart-parking-shim.yaml
-│   # Esempio manifest SpinKube (WASM), opzionale per demo avanzate
 ├── k8s/
 │   ├── crds/
 │   │   ├── parkinglot-crd.yaml         # Definizione CRD ParkingLot
@@ -81,7 +79,7 @@ Ogni cartella contiene file specifici per la sua funzione: manifest, codice, con
 Ogni cartella/folder è pensata per isolare una componente del sistema:
 - **k8s/** contiene tutto ciò che serve per la configurazione e la sicurezza su Kubernetes
 - **services/** racchiude i microservizi Python/FastAPI
-- **wasm-aggregator/** permette di usare un aggregatore WASM alternativo, portabile e sicuro.
+- **wasm-aggregator/** permette di usare un aggregatore WASM alternativo
 ---
 
 ## Architettura & flussi
@@ -236,11 +234,11 @@ kubectl -n smart-parking wait --for=condition=Available deploy/signage --timeout
 kubectl -n smart-parking wait --for=condition=Available deploy/mobile-api --timeout=180s
 ```
 
-12) **RBAC + ServiceAccount per l'aggregator Wasm**
+12) **RBAC + ServiceAccount aggregator Wasm**
 ```bash
 kubectl -n smart-parking apply -f wasm-aggregator\rbac-wasm-aggregator.yaml
 ```
-13) **Token del ServiceAccount + Secret per lo SpinApp**
+13) **Token del ServiceAccount + Secret SpinApp**
 ```bash
 kubectl -n smart-parking get sa spinkube-aggregator >nul 2>nul
 set "TMP_TOKEN=%TEMP%\k8s.token"

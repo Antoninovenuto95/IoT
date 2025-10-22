@@ -22,7 +22,7 @@ spec:
         ports:
         - containerPort: 8883  # Porta MQTT con TLS/mTLS
           name: mqtts
-        - containerPort: 1883  # Porta MQTT senza TLS (sviluppo)
+        - containerPort: 1883  # Porta MQTT senza TLS
           name: mqtt
         volumeMounts:
         - name: mosquitto-config

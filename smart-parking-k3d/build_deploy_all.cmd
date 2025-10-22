@@ -24,7 +24,7 @@ where wasmtime >nul 2>nul || (echo ERRORE: helm non trovato & exit /b 1)
 where rustup >nul 2>nul || (echo ERRORE: helm non trovato & exit /b 1)
 
 echo.
-echo [1/15] Creo (se serve) il cluster k3d con containerd-shim-spin
+echo [1/15] Creazione del cluster k3d con containerd-shim-spin
 set "FOUND="
 for /f "tokens=1 delims= " %%a in ('k3d cluster list ^| findstr /i "^%CLUSTER% " 2^>nul') do set FOUND=1
 if not defined FOUND (
@@ -46,7 +46,7 @@ kubectl apply -f k8s\crds\parkinglot-crd.yaml || goto :err
 kubectl apply -f k8s\crds\parkingspace-crd.yaml || goto :err
 
 echo.
-echo [3/15] Installo cert-manager (%CERTM_VER%)
+echo [3/15] Installazione cert-manager (%CERTM_VER%)
 kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/%CERTM_VER%/cert-manager.yaml || goto :err
 kubectl wait --for=condition=available --timeout=300s deployment/cert-manager-webhook -n cert-manager || goto :err
 
@@ -62,7 +62,7 @@ helm upgrade --install spin-operator ^
 kubectl -n spin-operator rollout status deploy/spin-operator-controller-manager --timeout=300s || goto :err
 
 echo.
-echo [5/15] Creo lo Shim Executor (namespace %NS%)
+echo [5/15] Creazione Shim Executor (namespace %NS%)
 kubectl -n %NS% apply -f https://github.com/spinframework/spin-operator/releases/download/v0.6.1/spin-operator.shim-executor.yaml || goto :err
 kubectl -n %NS% get spinappexecutors.core.spinkube.dev
 
@@ -106,29 +106,29 @@ kubectl -n %NS% apply -f services\signage\deployment.yaml || goto :err
 kubectl -n %NS% apply -f services\mobile-api\deployment.yaml || goto :err
 
 echo.
-echo [11/15] Attendo readiness dei deployment
+echo [11/15] Attesa readiness dei deployment
 kubectl -n %NS% wait --for=condition=Available deploy/aggregator --timeout=180s || goto :err
 kubectl -n %NS% wait --for=condition=Available deploy/sensor-simulator --timeout=180s || goto :err
 kubectl -n %NS% wait --for=condition=Available deploy/signage --timeout=180s || goto :err
 kubectl -n %NS% wait --for=condition=Available deploy/mobile-api --timeout=180s || goto :err
 
 echo.
-echo [12/15] RBAC + ServiceAccount per l'aggregator Wasm
+echo [12/15] RBAC + ServiceAccount aggregator Wasm
 if not exist "wasm-aggregator\rbac-wasm-aggregator.yaml" (
   echo ERRORE: manca rbac-wasm-aggregator.yaml & goto :err
 )
 kubectl -n %NS% apply -f wasm-aggregator\rbac-wasm-aggregator.yaml || goto :err
 
 echo.
-echo [13/15] Token del ServiceAccount + Secret per lo SpinApp
-REM Verifico che il SA esista (creato nello step RBAC)
+echo [13/15] Token del ServiceAccount + Secret SpinApp
+REM Verifica dell'esistenza del SA
 kubectl -n %NS% get sa spinkube-aggregator >nul 2>nul || (
   echo ERRORE: ServiceAccount spinkube-aggregator non trovato nel namespace %NS%.
   echo Assicurati che wasm-aggregator\rbac-wasm-aggregator.yaml sia stato applicato.
   goto :err
 )
 
-REM Rigenero il token (validita' 24h) e ricreo il Secret idempotentemente
+REM Rigenerazione del token (validita' 24h) e creazione Secret idempotentemente
 set "TMP_TOKEN=%TEMP%\k8s.token"
 kubectl -n %NS% create token spinkube-aggregator --duration=24h > "%TMP_TOKEN%" || goto :err
 
@@ -149,7 +149,7 @@ kubectl -n %NS% apply -f wasm-aggregator\kubeapi-haproxy.yaml || goto :err
 kubectl -n %NS% apply -f wasm-aggregator\spinapp.yaml || goto :err
 
 echo.
-echo [15/15] Attendo che l'app Spin parta
+echo [15/15] Attesa avvio app Spin
 kubectl -n %NS% get spinapp
 REM Il controller crea un Deployment con nome = metadata.name della SpinApp (se l'executor crea i Deployment)
 kubectl -n %NS% rollout status deploy/smart-parking-aggregator --timeout=300s || (

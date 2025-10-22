@@ -27,7 +27,7 @@ data:
     # Usa il CN del certificato come username MQTT
     use_identity_as_username true
 
-    # Listener non-TLS su porta 1883 (solo per sviluppo e aggregator WASM)
+    # Listener non-TLS su porta 1883 (per aggregator WASM)
     # Permette connessioni anonime
     listener 1883
     allow_anonymous true
