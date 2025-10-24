@@ -1,6 +1,6 @@
 # ------------------------------------------------------
 # SpinApp per il componente WASM Aggregator
-# Questa applicazione riceve gli aggiornamenti dai sensori (via MQTT)
+# L'applicazione riceve gli aggiornamenti dai sensori (via MQTT)
 # e aggiorna le CRD ParkingLot e ParkingSpace nel cluster Kubernetes.
 # ------------------------------------------------------
 apiVersion: core.spinkube.dev/v1alpha1
