@@ -5,7 +5,7 @@ metadata:
   # Nome della risorsa Deployment
   name: mosquitto
 spec:
-  # Numero di repliche (broker singolo per demo)
+  # Numero di repliche (broker singolo)
   replicas: 1
   selector:
     matchLabels:

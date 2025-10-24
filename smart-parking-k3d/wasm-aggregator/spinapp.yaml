@@ -1,8 +1,6 @@
-# ------------------------------------------------------
 # SpinApp per il componente WASM Aggregator
 # L'applicazione riceve gli aggiornamenti dai sensori (via MQTT)
 # e aggiorna le CRD ParkingLot e ParkingSpace nel cluster Kubernetes.
-# ------------------------------------------------------
 apiVersion: core.spinkube.dev/v1alpha1
 kind: SpinApp
 metadata:
@@ -14,17 +12,13 @@ spec:
   replicas: 1                                  # Numero di repliche del pod
   serviceAccountName: spinkube-aggregator      # ServiceAccount con i permessi RBAC definiti nel file precedente
   variables:
-    # --------------------------------------------------
     # Configurazione MQTT: broker e topic da sottoscrivere
-    # --------------------------------------------------
     - name: broker_addr
       value: "mqtt://mosquitto.smart-parking.svc.cluster.local:1883"  # Indirizzo interno del broker MQTT
     - name: topic
       value: "parking/+/+/status"              # Topic MQTT con wildcard per ricevere tutti gli aggiornamenti di stato
     
-    # --------------------------------------------------
     # Configurazione per interagire con le CRD nel cluster
-    # --------------------------------------------------
     - name: namespace
       value: "smart-parking"                   # Namespace in cui operano le CRD
     - name: group
@@ -32,9 +26,7 @@ spec:
     - name: version
       value: "v1alpha1"                        # Versione dell’API personalizzata
 
-    # --------------------------------------------------
     # Parametri di connessione al proxy dell’API server
-    # --------------------------------------------------
     - name: k8s_scheme
       value: "http"                            # Protocollo usato per comunicare con l’API server (via proxy)
     - name: k8s_host
@@ -42,10 +34,8 @@ spec:
     - name: k8s_port
       value: "8000"                            # Porta esposta dal proxy
 
-    # --------------------------------------------------
     # Token di autenticazione per l’accesso all’API server
     # Estratto da un Secret Kubernetes
-    # --------------------------------------------------
     - name: k8s_token
       valueFrom:
         secretKeyRef:

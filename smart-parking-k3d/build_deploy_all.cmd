@@ -1,12 +1,10 @@
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 
-REM ============================================================
-REM  Smart Parking - Setup Unificato (TLS + SpinKube)
-REM  Requisiti: Docker Desktop, kubectl, k3d, helm, spin, cargo, wasmtime, rustup
-REM ============================================================
+REM Smart Parking - Setup Unificato (TLS + SpinKube)
+REM Requisiti: Docker Desktop, kubectl, k3d, helm, spin, cargo, wasmtime, rustup
 
-REM ===== Settings =====
+REM Settings
 set "CLUSTER=wasm-cluster"
 set "NS=smart-parking"
 set "SPIN_OP_VER=v0.6.1"
@@ -132,7 +130,7 @@ REM Rigenerazione del token (validita' 24h) e creazione Secret idempotentemente
 set "TMP_TOKEN=%TEMP%\k8s.token"
 kubectl -n %NS% create token spinkube-aggregator --duration=24h > "%TMP_TOKEN%" || goto :err
 
-REM Se il Secret esiste gia', lo elimino per evitare "AlreadyExists"
+REM Se il Secret esiste gia', viene eliminato per evitare "AlreadyExists"
 kubectl -n %NS% delete secret k8s-token-secret >nul 2>nul
 
 kubectl -n %NS% create secret generic k8s-token-secret ^

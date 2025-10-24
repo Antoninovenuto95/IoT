@@ -1,6 +1,4 @@
-# -----------------------------------------------------
 # Aggregatore MQTT -> CRD in ambiente Kubernetes (Spin + Wasm)
-# -----------------------------------------------------
 
 spin_manifest_version = 2
 
@@ -14,10 +12,8 @@ description = "MQTT -> CRD aggregator (Spin Wasm)"
 # Autori o maintainer
 authors = ["You"]
 
-# ------------------------------------------------------
 # Variabili di configurazione
 # Queste possono essere sovrascritte tramite ambiente o CLI
-# ------------------------------------------------------
 
 [variables]
 # Indirizzo del broker MQTT (usato come trigger principale)
@@ -45,10 +41,8 @@ k8s_port   = { default = "8000" }
 # Token di autenticazione per l’API (vuoto di default, da Secret)
 k8s_token  = { default = "" }
 
-# ------------------------------------------------------
 # Trigger MQTT
 # Spin attiva il componente “aggregator” alla ricezione di un messaggio
-# ------------------------------------------------------
 
 [application.trigger.mqtt]
 # Connessione al broker MQTT
@@ -67,17 +61,14 @@ topic = "{{ topic }}"
 # QoS per il messaggio MQTT
 qos = "1"
 
-# ------------------------------------------------------
 # Componente principale: Aggregator
 # Si occupa di convertire messaggi MQTT in CRD Kubernetes
-# ------------------------------------------------------
 
 [component.aggregator]
 # Percorso al file WebAssembly compilato
 source = "target/wasm32-wasip1/release/smart_parking_aggregator.wasm"
 
 # Lista completa degli host verso cui il Wasm può fare richieste
-# Spin WASM richiede l’esplicitazione di TUTTI i possibili host di destinazione
 allowed_outbound_hosts = [
   # --- MQTT broker: tutte le varianti DNS ---
   "mqtt://mosquitto.smart-parking.svc.cluster.local:1883",
@@ -85,7 +76,7 @@ allowed_outbound_hosts = [
   "mqtt://mosquitto.smart-parking:1883",
   "mqtt://mosquitto:1883",
   
-  # --- HAProxy / kubeapi-proxy: tutte le varianti (CRITICAL!) ---
+  # --- HAProxy / kubeapi-proxy: tutte le varianti ---
   "http://kubeapi-proxy.smart-parking.svc.cluster.local:8000",
   "http://kubeapi-proxy.smart-parking.svc:8000",
   "http://kubeapi-proxy.smart-parking:8000",
@@ -104,9 +95,7 @@ allowed_outbound_hosts = [
   "https://kubernetes:443"
 ]
 
-# ------------------------------------------------------
 # Variabili passate al componente Wasm
-# ------------------------------------------------------
 
 [component.aggregator.variables]
 broker_addr = "{{ broker_addr }}"
@@ -119,10 +108,8 @@ k8s_host    = "{{ k8s_host }}"
 k8s_port    = "{{ k8s_port }}"
 k8s_token   = "{{ k8s_token }}"
 
-# ------------------------------------------------------
 # Variabili d’ambiente per il runtime
 # (accessibili tramite std::env nel codice Rust)
-# ------------------------------------------------------
 
 [component.aggregator.environment]
 NAMESPACE   = "{{ namespace }}"
@@ -135,10 +122,8 @@ K8S_PORT    = "{{ k8s_port }}"
 # Spin namespace per le variabili d’ambiente
 SPIN_VARIABLE_NAMESPACE = "smart-parking"
 
-# ------------------------------------------------------
 # Configurazione di build
 # Comando per compilare il componente in formato Wasm
-# ------------------------------------------------------
 
 [component.aggregator.build]
 command = "cargo build --target wasm32-wasip1 --release"

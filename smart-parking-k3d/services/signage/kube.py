@@ -3,7 +3,7 @@
 import os
 from kubernetes import config
 
-# Carica la configurazione Kubernetes in modo sicuro
+# Carica la configurazione Kubernetes
 # Usa la config in-cluster se disponibile, altrimenti il file kubeconfig locale
 def load_kube_config_safely():
     try:

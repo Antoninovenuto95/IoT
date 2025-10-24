@@ -1,27 +1,20 @@
 # RBAC per i componenti Mobile API e Signage
 # Permette la lettura delle CRD ParkingLot e ParkingSpace
-# (usato dai servizi che devono solo leggere i dati, non modificarli)
 
-# ------------------------------------------------------
 # ServiceAccount usato dal pod Mobile API
-# ------------------------------------------------------
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: mobile-api
 ---
-# ------------------------------------------------------
 # ServiceAccount usato dal pod Signage
-# ------------------------------------------------------
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: signage
 ---
-# ------------------------------------------------------
 # Ruolo con permessi di sola lettura sulle CRD ParkingLot e ParkingSpace
 # Include i permessi get/list/watch per monitorare gli oggetti
-# ------------------------------------------------------
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
@@ -31,10 +24,8 @@ rules:
     resources: ["parkinglots","parkingspaces"]   # Risorse gestite
     verbs: ["get","list","watch"]                # Permessi di sola lettura
 ---
-# ------------------------------------------------------
 # RoleBinding che collega il ServiceAccount mobile-api al ruolo crd-reader
 # In questo modo Mobile API può leggere le CRD
-# ------------------------------------------------------
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
@@ -47,10 +38,8 @@ roleRef:
   kind: Role
   name: crd-reader                               # Nome del ruolo con i permessi
 ---
-# ------------------------------------------------------
 # RoleBinding che collega il ServiceAccount signage al ruolo crd-reader
 # Permette anche a Signage di leggere le CRD
-# ------------------------------------------------------
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:

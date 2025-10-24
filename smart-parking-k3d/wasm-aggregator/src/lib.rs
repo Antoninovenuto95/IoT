@@ -11,13 +11,13 @@ use std::sync::{Once, OnceLock};
 
 // One-time init per loggare la configurazione solo al primo messaggio
 static INIT: Once = Once::new();
-// Cache globale del token del service account (risolto una volta sola)
+// Cache globale del token del service account
 static TOKEN_CACHE: OnceLock<TokenInfo> = OnceLock::new();
 
 #[derive(Clone)]
 struct TokenInfo {
     value: String,       // Il token vero e proprio
-    via:   &'static str, // Da dove è stato recuperato (diagnostica)
+    via:   &'static str, // Da dove è stato recuperato
 }
 
 
@@ -309,8 +309,7 @@ async fn patch_parkingspace_status(lot_id: &str, space_id: &str, occupied: bool,
 /// Riconta gli stalli di un dato lot interrogando tutte le ParkingSpace nel namespace.
 /// Ritorna (occupied, free). In caso di errore restituisce (0, 0).
 async fn recount_lot(lot_id: &str) -> (i32, i32) {
-    // Nota: per semplicità listiamo tutte le parkingspaces nel ns e filtriamo lato client.
-    // Se la cardinalità cresce molto, conviene introdurre un labelSelector server-side.
+    // Nota: per semplicità lista tutte le parkingspaces nel ns e filtra lato client.
     let path = format!("/apis/{}/{}/namespaces/{}/parkingspaces", group(), version(), ns());
     let mut occupied = 0i32;
     let mut total = 0i32;
@@ -327,7 +326,7 @@ async fn recount_lot(lot_id: &str) -> (i32, i32) {
                 return (0, 0);
             }
 
-            // Parsing robusto del JSON restituito dalla LIST delle CRD
+            // Parsing del JSON restituito dalla LIST delle CRD
             match serde_json::from_slice::<serde_json::Value>(&bytes) {
                 Ok(doc) => {
                     if let Some(items) = doc.get("items").and_then(|v| v.as_array()) {
@@ -402,7 +401,7 @@ async fn on_mqtt_message(message: Payload, _meta: Metadata) -> anyhow::Result<()
         let occupied = data.occupied.unwrap_or(false);
         let sensor_online = data.sensor_online;
 
-        // Usa ts se presente, altrimenti now(); conversione sicura in OffsetDateTime
+        // Usa ts se presente, altrimenti now(); conversione in OffsetDateTime
         let ts = data.ts.unwrap_or_else(|| time::OffsetDateTime::now_utc().unix_timestamp());
         let last_seen_iso = time::OffsetDateTime::from_unix_timestamp(ts)
             .unwrap_or(time::OffsetDateTime::now_utc())

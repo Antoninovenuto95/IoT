@@ -1,15 +1,10 @@
-# ------------------------------------------------------
 # HAProxy come proxy HTTP verso il kube-apiserver
-# ------------------------------------------------------
-# Questo componente espone un endpoint HTTP (porta 8000)
+# Espone un endpoint HTTP (porta 8000)
 # che inoltra le richieste al kube-apiserver (porta 443, HTTPS),
 # permettendo al WASM Aggregator di interagire con le CRD
 # senza dover gestire certificati o connessioni HTTPS dirette.
-# ------------------------------------------------------
 
-# ------------------------------------------------------
 # ConfigMap contenente la configurazione di HAProxy
-# ------------------------------------------------------
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -38,16 +33,14 @@ data:
       # - "ssl verify none" disabilita la verifica del certificato
       #   poiché il traffico è interno al cluster
 ---
-# ------------------------------------------------------
 # Deployment del proxy HAProxy
-# ------------------------------------------------------
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: kubeapi-haproxy                     # Nome del Deployment
   namespace: smart-parking
 spec:
-  replicas: 1                               # Una replica è sufficiente (proxy locale)
+  replicas: 1                               # Una replica (proxy locale)
   selector:
     matchLabels:
       app: kubeapi-haproxy                  # Label per il selector
@@ -74,9 +67,7 @@ spec:
               - key: haproxy.cfg            # File da montare
                 path: haproxy.cfg
 ---
-# ------------------------------------------------------
 # Service per esporre HAProxy all’interno del namespace
-# ------------------------------------------------------
 apiVersion: v1
 kind: Service
 metadata:

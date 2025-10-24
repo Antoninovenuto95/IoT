@@ -47,7 +47,7 @@ def list_lots_data() -> List[Dict[str, Any]]:
                 "lastUpdate": last_update,
             })
     except Exception:
-        # Manteniamo l'API sempre consistente
+        # Mantiene l'API sempre consistente
         return []
     return items
 

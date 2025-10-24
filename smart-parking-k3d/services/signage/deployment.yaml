@@ -6,7 +6,7 @@ metadata:
   # Nome del Deployment
   name: signage
 spec:
-  replicas: 1 # Un solo pod per demo
+  replicas: 1 # Un solo pod
   selector:
     matchLabels:
       app: signage

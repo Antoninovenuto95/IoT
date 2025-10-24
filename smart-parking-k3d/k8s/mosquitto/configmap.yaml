@@ -8,7 +8,7 @@ metadata:
 data:
   # File di configurazione principale di Mosquitto
   mosquitto.conf: |
-    # Listener TLS su porta 8883 (per produzione e aggregator Python)
+    # Listener TLS su porta 8883 (per aggregator Python)
     listener 8883
     # Disabilita accesso anonimo: solo client autenticati (mTLS)
     allow_anonymous false

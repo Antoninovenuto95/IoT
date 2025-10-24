@@ -22,7 +22,7 @@ rules:
     verbs: ["get", "update", "patch"] # Permessi di aggiornamento status
   - apiGroups: [""]
     resources: ["events"]
-    verbs: ["create", "patch"]  # Permessi per creare Event (opzionale)
+    verbs: ["create", "patch"]  # Permessi per creare Event
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
