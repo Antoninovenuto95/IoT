@@ -50,7 +50,7 @@ struct ParkingSpaceStatus {
 
 // --- Funzioni di utilità per configurazione/env ---
 /// Legge una variabile: prima Spin variables, poi env SPIN_VARIABLE_*, poi default.
-/// Nota: per "namespace" forziamo l'override a "smart-parking".
+/// Nota: per "namespace" forza l'override a "smart-parking".
 fn v(name: &str, default: &str) -> String {
     if name == "namespace" {
         // forza override manuale
@@ -86,7 +86,7 @@ fn service_account_token() -> Option<&'static TokenInfo> {
         if trimmed.is_empty() { None } else { Some(trimmed) }
     }
 
-    // Se già in cache, restituisci subito
+    // Se già in cache, restituisce subito
     if let Some(info) = TOKEN_CACHE.get() {
         return Some(info);
     }
@@ -122,7 +122,7 @@ fn service_account_token() -> Option<&'static TokenInfo> {
         None
     }();
 
-    // Se è stato trovato un token, mettilo in cache per usi futuri
+    // Se è stato trovato un token, mette in cache per usi futuri
     if let Some(info) = resolved {
         let _ = TOKEN_CACHE.set(info);
         return TOKEN_CACHE.get();
@@ -373,7 +373,7 @@ async fn on_mqtt_message(message: Payload, _meta: Metadata) -> anyhow::Result<()
     let topic = _meta.topic.clone();
     println!("MQTT message on topic: {}", topic);
 
-    // Log di configurazione SOLO al primo messaggio (thread-safe)
+    // Log di configurazione SOLO al primo messaggio
     INIT.call_once(|| {
         let (scheme, host, port, ns, group, version, tok) = env_cfg();
         println!(
@@ -388,7 +388,7 @@ async fn on_mqtt_message(message: Payload, _meta: Metadata) -> anyhow::Result<()
         let lot_id = parts[1];
         let space_id = parts[2];
 
-        // Decodifica JSON del payload con fallback robusto sugli opzionali
+        // Decodifica JSON del payload
         let data: SpaceMsg = match serde_json::from_slice(&message) {
             Ok(d) => d,
             Err(e) => {
@@ -412,7 +412,7 @@ async fn on_mqtt_message(message: Payload, _meta: Metadata) -> anyhow::Result<()
             "Upserting lot={lot_id}, space={space_id}, occupied={occupied}, online={sensor_online}"
         );
 
-        // Crea/aggiorna le risorse su K8s (idempotenti)
+        // Crea/aggiorna le risorse su K8s
         ensure_parkinglot(lot_id, None).await;
         ensure_parkingspace(lot_id, space_id).await;
         patch_parkingspace_status(lot_id, space_id, occupied, sensor_online, last_seen_iso).await;
@@ -433,3 +433,4 @@ async fn on_mqtt_message(message: Payload, _meta: Metadata) -> anyhow::Result<()
     }
     Ok(())
 }
+
