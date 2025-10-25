@@ -167,6 +167,7 @@ echo.
 echo Apri:
 echo   Segnaletica UI: https://localhost:8081
 echo   Mobile API Swagger: https://localhost:8082/docs
+echo   Log dell'aggregator WASM: kubectl -n smart-parking logs deploy/smart-parking-aggregator -f
 exit /b 0
 
 :err
