@@ -1,5 +1,5 @@
 # Simulatore di sensori per Smart Parking
-# Questo script crea NUM_SPACES sensori virtuali che pubblicano lo stato su MQTT
+# Crea NUM_SPACES sensori virtuali che pubblicano lo stato su MQTT
 import os
 import time
 import json
@@ -90,3 +90,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
