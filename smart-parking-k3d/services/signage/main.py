@@ -46,8 +46,7 @@ def list_lots_data() -> List[Dict[str, Any]]:
                 "lastUpdate": last_update,
             })
     except Exception as e:
-        # In caso di errori RBAC o temporanei restituiamo lista vuota e un header diagnostico
-        # (evita di rompere la UI)
+        # In caso di errori RBAC o temporanei restituisce lista vuota e un header diagnostico
         return []
     return items
 
@@ -135,3 +134,4 @@ setInterval(tick, 2000);
 </html>
     """
     return HTMLResponse(html)
+
