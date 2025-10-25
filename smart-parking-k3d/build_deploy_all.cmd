@@ -126,7 +126,7 @@ kubectl -n %NS% get sa spinkube-aggregator >nul 2>nul || (
   goto :err
 )
 
-REM Rigenerazione del token (validita' 24h) e creazione Secret idempotentemente
+REM Rigenerazione del token (validita' 24h) e creazione Secret
 set "TMP_TOKEN=%TEMP%\k8s.token"
 kubectl -n %NS% create token spinkube-aggregator --duration=24h > "%TMP_TOKEN%" || goto :err
 
@@ -174,3 +174,4 @@ exit /b 0
 echo.
 echo *** ERRORE durante build/deploy. Vedi messaggi sopra. ***
 exit /b 1
+
