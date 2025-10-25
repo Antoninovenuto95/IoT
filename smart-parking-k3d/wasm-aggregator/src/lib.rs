@@ -135,10 +135,10 @@ fn service_account_token() -> Option<&'static TokenInfo> {
 /// Fallisce se il token non è disponibile.
 fn bearer() -> Result<String, anyhow::Error> {
     if let Some(info) = service_account_token() {
-        println!("using token via {} len={}", info.via, info.value.len());
+        println!("uso token da {} (lunghezza={})", info.via, info.value.len());
         return Ok(format!("Bearer {}", info.value.as_str()));
     }
-    Err(anyhow::anyhow!("missing SA token"))
+    Err(anyhow::anyhow!("token del service account mancante"))
 }
 
 /// Ritorna l'istante corrente in formato RFC3339 (UTC).
@@ -174,7 +174,7 @@ fn is_success(status: u16) -> bool {
     (200..300).contains(&status)
 }
 
-/// Logga il corpo di risposta se lo status non è 2xx (utile per diagnosi).
+/// Logga il body di risposta se lo status non è 2xx (utile per diagnosi).
 fn log_non_success(verb: &str, url: &str, resp: &Response) {
     let status = *resp.status();
     if !is_success(status) {
@@ -194,11 +194,11 @@ async fn k8s_get(path: &str) -> Result<Response, anyhow::Error> {
         .build();
     match http::send(req).await {
         Ok(resp) => { log_non_success("GET", &url, &resp); Ok(resp) }
-        Err(e) => { eprintln!("GET {url} failed: {e}"); Err(e.into()) }
+        Err(e) => { eprintln!("GET {url} fallita: {e}"); Err(e.into()) }
     }
 }
 
-/// Esegue POST verso l'API K8s con corpo e content type forniti.
+/// Esegue POST verso l'API K8s con body e content type forniti.
 async fn k8s_post(path: &str, body: Vec<u8>, content_type: &str) -> Result<Response, anyhow::Error> {
     let url = format!("{}{}", k8s_base(), path);
     let req = Request::post(&url, body)
@@ -208,7 +208,7 @@ async fn k8s_post(path: &str, body: Vec<u8>, content_type: &str) -> Result<Respo
         .build();
     match http::send(req).await {
         Ok(resp) => { log_non_success("POST", &url, &resp); Ok(resp) }
-        Err(e) => { eprintln!("POST {url} failed: {e}"); Err(e.into()) }
+        Err(e) => { eprintln!("POST {url} fallita: {e}"); Err(e.into()) }
     }
 }
 
@@ -223,7 +223,7 @@ async fn k8s_patch(path: &str, body: Vec<u8>, content_type: &str) -> Result<Resp
         .build();
     match http::send(req).await {
         Ok(resp) => { log_non_success("PATCH", &url, &resp); Ok(resp) }
-        Err(e) => { eprintln!("PATCH {url} failed: {e}"); Err(e.into()) }
+        Err(e) => { eprintln!("PATCH {url} fallita: {e}"); Err(e.into()) }
     }
 }
 
@@ -241,14 +241,14 @@ async fn ensure_parkinglot(lot_id: &str, total_spaces: Option<i32>) {
     if let Ok(r) = k8s_post(&path, serde_json::to_vec(&body).unwrap(), "application/json").await {
         let status = *r.status();
         if status == 201 {
-            println!("Created ParkingLot/{name}");
+            println!("Creata ParkingLot/{name}");
         } else if status == 409 {
             // Esiste già: se viene fornito total_spaces, facciamo un merge-patch dello spec
             if let Some(ts) = total_spaces {
                 let patch = serde_json::json!({ "spec": { "totalSpaces": ts }});
                 let p2 = format!("/apis/{}/{}/namespaces/{}/parkinglots/{}", group(), version(), ns(), name);
                 let _ = k8s_patch(&p2, serde_json::to_vec(&patch).unwrap(), "application/merge-patch+json").await;
-                println!("Ensured ParkingLot/{name} totalSpaces={ts}");
+                println!("Verificata ParkingLot/{name} con totalSpaces={ts}");
             }
         }
     }
@@ -264,11 +264,11 @@ async fn patch_parkinglot_status(lot_id: &str, occupied: i32, free: i32) {
     if let Ok(r) = k8s_patch(&path, serde_json::to_vec(&body).unwrap(), "application/merge-patch+json").await {
         let sc = *r.status();
         if sc == 404 {
-            println!("ParkingLot/{name} not found; creating then patching status");
+            println!("ParkingLot/{name} non trovata; creazione e nuovo patch dello stato");
             ensure_parkinglot(lot_id, Some(occupied + free)).await;
             let _ = k8s_patch(&path, serde_json::to_vec(&body).unwrap(), "application/merge-patch+json").await;
         } else if is_success(sc) {
-            println!("Patched ParkingLot/{name} status -> occupied={occupied}, free={free}");
+            println!("Aggiornato stato di ParkingLot/{name} -> occupati={occupied}, liberi={free}");
         }
     }
 }
@@ -296,11 +296,11 @@ async fn patch_parkingspace_status(lot_id: &str, space_id: &str, occupied: bool,
     if let Ok(r) = k8s_patch(&path, serde_json::to_vec(&body).unwrap(), "application/merge-patch+json").await {
         let sc = *r.status();
         if sc == 404 {
-            println!("ParkingSpace/{name} not found; creating then patching status");
+            println!("ParkingSpace/{name} non trovata; creazione e nuovo patch dello stato");
             ensure_parkingspace(lot_id, space_id).await;
             let _ = k8s_patch(&path, serde_json::to_vec(&body).unwrap(), "application/merge-patch+json").await;
         } else if is_success(sc) {
-            println!("Patched ParkingSpace/{name} status -> occupied={occupied}, online={sensor_online}");
+            println!("Aggiornato stato di ParkingSpace/{name} -> occupato={occupied}, online={sensor_online}");
         }
     }
 }
@@ -320,7 +320,7 @@ async fn recount_lot(lot_id: &str) -> (i32, i32) {
             let bytes = resp.body().to_vec();
             let preview = String::from_utf8_lossy(&bytes);
             println!("GET {} -> {}", path, status);
-            println!("GET body (preview): {}", &preview.chars().take(300).collect::<String>());
+            println!("Anteprima body GET: {}", &preview.chars().take(300).collect::<String>());
 
             if !is_success(status) {
                 return (0, 0);
@@ -346,22 +346,22 @@ async fn recount_lot(lot_id: &str) -> (i32, i32) {
                             }
                         }
                     } else {
-                        eprintln!("JSON ok ma 'items' assente o non array");
+                        eprintln!("JSON valido ma campo 'items' assente o non array");
                     }
                 }
                 Err(e) => {
-                    eprintln!("Errore parsing JSON parkingspaces: {e}");
+                    eprintln!("Errore nel parsing JSON delle parkingspaces: {e}");
                 }
             }
         }
         Err(e) => {
-            eprintln!("GET {} failed: {}", path, e);
+            eprintln!("GET {} fallita: {}", path, e);
             return (0, 0);
         }
     }
 
     let free = (total - occupied).max(0);
-    println!("Recount lot {lot_id} -> occupied={occupied}, free={free}, total={total}");
+    println!("Ricalcolo parcheggio {lot_id} -> occupati={occupied}, liberi={free}, totali={total}");
     (occupied, free)
 }
 
@@ -371,13 +371,13 @@ async fn recount_lot(lot_id: &str) -> (i32, i32) {
 #[mqtt_component]
 async fn on_mqtt_message(message: Payload, _meta: Metadata) -> anyhow::Result<()> {
     let topic = _meta.topic.clone();
-    println!("MQTT message on topic: {}", topic);
+    println!("Messaggio MQTT sul topic: {}", topic);
 
     // Log di configurazione SOLO al primo messaggio
     INIT.call_once(|| {
         let (scheme, host, port, ns, group, version, tok) = env_cfg();
         println!(
-            "cfg scheme={scheme} host={host} port={port} ns={ns} group={group} version={version} token_present={}",
+            "configurazione: scheme={scheme} host={host} port={port} ns={ns} group={group} version={version} token_presente={}",
             tok.is_some()
         );
     });
@@ -392,7 +392,7 @@ async fn on_mqtt_message(message: Payload, _meta: Metadata) -> anyhow::Result<()
         let data: SpaceMsg = match serde_json::from_slice(&message) {
             Ok(d) => d,
             Err(e) => {
-                eprintln!("Invalid payload on {topic}: {e}");
+                eprintln!("Payload non valido su {topic}: {e}");
                 return Ok(());
             }
         };
@@ -409,7 +409,7 @@ async fn on_mqtt_message(message: Payload, _meta: Metadata) -> anyhow::Result<()
             .unwrap();
 
         println!(
-            "Upserting lot={lot_id}, space={space_id}, occupied={occupied}, online={sensor_online}"
+            "Aggiornamento: parcheggio={lot_id}, stallo={space_id}, occupato={occupied}, online={sensor_online}"
         );
 
         // Crea/aggiorna le risorse su K8s
@@ -418,19 +418,18 @@ async fn on_mqtt_message(message: Payload, _meta: Metadata) -> anyhow::Result<()
         patch_parkingspace_status(lot_id, space_id, occupied, sensor_online, last_seen_iso).await;
 
         // Riconta gli stalli del parcheggio e aggiorna lo stato aggregato
-        println!("Recounting lot {} ...", lot_id);
+        println!("Ricalcolo degli stalli per il parcheggio {} ...", lot_id);
         let (occ, free) = recount_lot(lot_id).await;
-        println!("Recounted lot {} -> occupied={}, free={}, total={}", lot_id, occ, free, occ + free);
+        println!("Risultato ricalcolo {lot_id} -> occupati={}, liberi={}, totali={}", occ, free, occ + free);
 
         // Mantiene spec.totalSpaces allineato e patcha lo status complessivo
         ensure_parkinglot(lot_id, Some(occ + free)).await;
         patch_parkinglot_status(lot_id, occ, free).await;
 
-        println!("Done lot={lot_id}, space={space_id}");
+        println!("Completato aggiornamento parcheggio={lot_id}, stallo={space_id}");
     } else {
         // Topic non riconosciuto: ignora ma logga per diagnosi
-        println!("Topic does not match parking/{{lot}}/{{space}}/status: {topic}");
+        println!("Topic non riconosciuto: atteso parking/{{lot}}/{{space}}/status, ricevuto: {topic}");
     }
     Ok(())
 }
-
