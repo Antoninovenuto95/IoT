@@ -47,7 +47,6 @@ def list_lots_data() -> List[Dict[str, Any]]:
                 "lastUpdate": last_update,
             })
     except Exception:
-        # Mantiene l'API sempre consistente
         return []
     return items
 
@@ -62,3 +61,4 @@ def health() -> str:
 def lots():
     # Endpoint /lots: restituisce i dati dei parcheggi in JSON
     return JSONResponse(list_lots_data())
+
