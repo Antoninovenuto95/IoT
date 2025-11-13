@@ -34,7 +34,7 @@ version    = { default = "v1alpha1" }
 # Configurazione API Kubernetes (via proxy interno)
 k8s_scheme = { default = "http" }
 
-# Usare sempre il FQDN completo per la risoluzione DNS nel cluster
+# FQDN completo per la risoluzione DNS nel cluster
 k8s_host   = { default = "kubeapi-proxy.smart-parking.svc.cluster.local" }
 k8s_port   = { default = "8000" }
 
@@ -127,3 +127,4 @@ SPIN_VARIABLE_NAMESPACE = "smart-parking"
 
 [component.aggregator.build]
 command = "cargo build --target wasm32-wasip1 --release"
+
