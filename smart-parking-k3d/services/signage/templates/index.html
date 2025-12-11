@@ -1,0 +1,74 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Smart Parking · Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <header>
+    Smart Parking · Dashboard
+    <span>Stato in tempo reale dei parcheggi, degli stalli e dei sensori</span>
+  </header>
+  <main>
+    <section>
+      <div class="cards">
+        <div class="card" data-metric="totalLots">
+          <div class="label">Parcheggi</div>
+          <div class="value">-</div>
+          <div class="hint">Totale parking lot monitorati</div>
+        </div>
+        <div class="card" data-metric="totalSpaces">
+          <div class="label">Stalli</div>
+          <div class="value">-</div>
+          <div class="hint">Numero complessivo di stalli</div>
+        </div>
+        <div class="card" data-metric="freeSpaces">
+          <div class="label">Liberi</div>
+          <div class="value">-</div>
+          <div class="hint">Stalli attualmente disponibili</div>
+        </div>
+        <div class="card" data-metric="occupiedSpaces">
+          <div class="label">Occupati</div>
+          <div class="value">-</div>
+          <div class="hint">Stalli occupati</div>
+        </div>
+        <div class="card" data-metric="sensorsOnline">
+          <div class="label">Sensori Online</div>
+          <div class="value">-</div>
+          <div class="hint">Dispositivi attivi</div>
+        </div>
+        <div class="card" data-metric="sensorsOffline">
+          <div class="label">Sensori Offline</div>
+          <div class="value">-</div>
+          <div class="hint">Dispositivi non raggiungibili</div>
+        </div>
+      </div>
+    </section>
+    <section>
+      <h2>Parcheggi</h2>
+      <div id="lots" class="lot-grid"><div class="empty">Caricamento…</div></div>
+    </section>
+    <section>
+      <h2>Stalli</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Parcheggio</th>
+              <th>Stallo</th>
+              <th>Occupazione</th>
+              <th>Stato Sensore</th>
+              <th>Ultimo Aggiornamento</th>
+            </tr>
+          </thead>
+          <tbody id="spaces"><tr><td colspan="5" class="empty">Caricamento…</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+  <footer>Ultimo aggiornamento: <span id="last-update">-</span> · Aggiornamento automatico ogni 3s</footer>
+<script src="/static/dashboard.js"></script>
+</body>
+</html>

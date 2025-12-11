@@ -1,0 +1,202 @@
+:root {
+    color-scheme: dark;
+}
+
+body {
+    margin: 0;
+    background: #0b0c0f;
+    color: #f5f5f5;
+    font-family: system-ui, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+header {
+    padding: 28px 24px 12px;
+    font-weight: 700;
+    font-size: 28px;
+    letter-spacing: .03em;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+header span {
+    font-size: 13px;
+    color: #9aa0a6;
+    font-weight: 500;
+}
+
+main {
+    flex: 1;
+    padding: 0 24px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+}
+
+.cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 16px;
+}
+
+.card {
+    background: linear-gradient(145deg, rgba(35,38,45,.96), rgba(21,23,28,.96));
+    border-radius: 18px;
+    padding: 18px 20px;
+    box-shadow: 0 18px 40px rgba(0,0,0,.35);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.card .label {
+    font-size: 13px;
+    color: #aab2c0;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+}
+
+.card .value {
+    font-size: 36px;
+    font-weight: 700;
+    color: #fff;
+}
+
+.card .hint {
+    font-size: 12px;
+    color: #6b7280;
+}
+
+section h2 {
+    margin: 0 0 12px;
+    font-size: 20px;
+    font-weight: 650;
+    letter-spacing: .02em;
+}
+
+.lot-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 16px;
+}
+
+.lot-card {
+    background: #14171f;
+    border-radius: 16px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    border: 1px solid rgba(255,255,255,0.04);
+}
+
+.lot-card .lot-id {
+    font-size: 12px;
+    color: #9aa0a6;
+    letter-spacing: .08em;
+}
+
+.lot-card .lot-free {
+    font-size: 42px;
+    font-weight: 700;
+}
+
+.lot-card .lot-meta {
+    font-size: 12px;
+    color: #9aa0a6;
+}
+
+.table-wrap {
+    overflow: auto;
+    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,0.06);
+    background: #11141b;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 600px;
+}
+
+th,
+td {
+    text-align: left;
+    padding: 12px 16px;
+    font-size: 13px;
+}
+
+th {
+    font-size: 12px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: #9aa0a6;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+tr:not(:last-child) td {
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.ok {
+    color: #4ade80;
+}
+
+.warn {
+    color: #facc15;
+}
+
+.bad {
+    color: #f87171;
+}
+
+.offline {
+    color: #f87171;
+}
+
+.online {
+    color: #4ade80;
+}
+
+.empty {
+    opacity: .7;
+    padding: 40px;
+    text-align: center;
+    font-size: 14px;
+}
+
+footer {
+    padding: 16px 24px;
+    color: #6b7280;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: .12em;
+}
+
+@media (max-width: 640px) {
+    header {
+        padding: 24px 18px 8px;
+        font-size: 22px;
+    }
+
+    main {
+        padding: 0 18px 24px;
+    }
+
+    .card .value {
+        font-size: 30px;
+    }
+}
