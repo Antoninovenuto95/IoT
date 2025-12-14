@@ -52,6 +52,11 @@ smart-parking-k3d/
 │   │   ├── deployment.yaml             # Deployment aggregator
 │   │   └── requirements.txt            # Dipendenze Python
 │   ├── signage/
+|   |   ├── static/
+│   │   |   ├── dashboard.js            # Funzioni JavaScript dashboard
+|   |   |   └── style.css               # Foglio di stile dashboard
+|   |   ├── templates/
+|   |   |   └── index.html              # Dashboard del sistema
 │   │   ├── Dockerfile                  # Build container UI
 │   │   ├── main.py                     # Codice FastAPI UI
 │   │   ├── kube.py                     # Utility Kubernetes client
@@ -361,3 +366,4 @@ Il componente `wasm-aggregator/` implementa un aggregatore MQTT → CRD in Rust,
 - **Deploy**: tramite SpinKube e manifest YAML forniti
 
 Il flusso logico replica quello dell'aggregatore Python: riceve messaggi MQTT, aggiorna/crea le risorse `ParkingLot` e `ParkingSpace` su Kubernetes, effettua il conteggio degli stalli e aggiorna lo stato.
+
