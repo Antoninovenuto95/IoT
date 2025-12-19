@@ -93,7 +93,7 @@ def compute_summary(lots: List[Dict[str, Any]], spaces: List[Dict[str, Any]]) ->
     occupied_spaces = sum(l.get("occupied", 0) or 0 for l in lots)
     free_spaces = sum(l.get("free", 0) or 0 for l in lots)
 
-    # Fallback: se non ci sono ParkingLot usiamo il conteggio diretto degli stalli
+    # Fallback: se non ci sono ParkingLot usa il conteggio diretto degli stalli
     if total_spaces == 0 and spaces:
         total_spaces = len(spaces)
         occupied_spaces = sum(1 for s in spaces if s.get("occupied"))
@@ -132,4 +132,5 @@ def dashboard_data():
 
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
+
     return templates.TemplateResponse("index.html", {"request": request})
