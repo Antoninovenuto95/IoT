@@ -16,10 +16,10 @@ where docker >nul 2>nul || (echo ERRORE: docker non trovato & exit /b 1)
 where kubectl >nul 2>nul || (echo ERRORE: kubectl non trovato & exit /b 1)
 where k3d >nul 2>nul || (echo ERRORE: k3d non trovato & exit /b 1)
 where helm >nul 2>nul || (echo ERRORE: helm non trovato & exit /b 1)
-where spin >nul 2>nul || (echo ERRORE: helm non trovato & exit /b 1)
-where cargo >nul 2>nul || (echo ERRORE: helm non trovato & exit /b 1)
-where wasmtime >nul 2>nul || (echo ERRORE: helm non trovato & exit /b 1)
-where rustup >nul 2>nul || (echo ERRORE: helm non trovato & exit /b 1)
+where spin >nul 2>nul || (echo ERRORE: spin non trovato & exit /b 1)
+where cargo >nul 2>nul || (echo ERRORE: cargo non trovato & exit /b 1)
+where wasmtime >nul 2>nul || (echo ERRORE: wasmtime non trovato & exit /b 1)
+where rustup >nul 2>nul || (echo ERRORE: rustup non trovato & exit /b 1)
 
 echo.
 echo [1/15] Creazione del cluster k3d con containerd-shim-spin
